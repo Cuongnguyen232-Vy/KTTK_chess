@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
  * - Điều hướng đến đúng trang sau khi đăng nhập (Admin → dashboard, User → home)
  */
 @Component
-public class AuthLifecycleHandler implements AuthenticationSuccessHandler, LogoutSuccessHandler {
+public class AuthLifecycleHandler implements AuthenticationSuccessHandler, LogoutHandler, LogoutSuccessHandler {
 
     @Autowired
     private AccountPersistence accountPersistence;
@@ -59,13 +60,11 @@ public class AuthLifecycleHandler implements AuthenticationSuccessHandler, Logou
     }
 
     /**
-     * onLogoutSuccess - Gọi sau khi đăng xuất.
-     * - Cập nhật trạng thái OFFLINE cho tài khoản
+     * logout - Gọi TRƯỚC KHI session bị xoá.
+     * Cập nhật trạng thái OFFLINE ở đây vì authentication chưa bị clear.
      */
     @Override
-    public void onLogoutSuccess(HttpServletRequest request,
-                                HttpServletResponse response,
-                                Authentication authentication) throws IOException, ServletException {
+    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         if (authentication != null) {
             String username = authentication.getName();
             Optional<Account> optAccount = accountPersistence.searchByUserName(username);
@@ -74,6 +73,15 @@ public class AuthLifecycleHandler implements AuthenticationSuccessHandler, Logou
                 accountPersistence.commitAccountChange(account);
             });
         }
+    }
+
+    /**
+     * onLogoutSuccess - Gọi sau khi đăng xuất.
+     */
+    @Override
+    public void onLogoutSuccess(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Authentication authentication) throws IOException, ServletException {
         response.sendRedirect("/login?logout=true");
     }
 }
