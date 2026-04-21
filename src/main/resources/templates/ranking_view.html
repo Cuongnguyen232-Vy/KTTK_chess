@@ -61,47 +61,55 @@
     <div class="table-card">
         <table class="data-table ranking-table">
             <thead>
-                <tr>
-                    <th>XẾP HẠNG</th>
-                    <th>HỌ TÊN</th>
-                    <th>TÊN ĐĂNG NHẬP</th>
-                    <th>ĐIỂM ELO</th>
-                    <th>CẤP BẬC</th>
-                    <th>TRẠNG THÁI</th>
+                    <th>STT</th>
+                    <th style="text-align:left;">TÊN</th>
+                    <th>THẮNG</th>
+                    <th>THUA</th>
+                    <th>HÒA</th>
+                    <th>ELO</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="player, iterStat : ${players}"
-                    th:class="${iterStat.index < 3} ? 'top-row' : ''">
+                    th:class="${iterStat.index < 3} ? 'top-row clickable-row' : 'clickable-row'"
+                    th:attr="onclick=|window.location.href='/profile/' + '${player.userName}'|">
                     <td class="rank-cell">
-                        <span th:if="${iterStat.index == 0}">🥇</span>
-                        <span th:if="${iterStat.index == 1}">🥈</span>
-                        <span th:if="${iterStat.index == 2}">🥉</span>
-                        <span th:if="${iterStat.index >= 3}" th:text="${iterStat.index + 1}">#4</span>
+                        <span th:if="${iterStat.index == 0}" style="color:#f59e0b; font-weight:bold;">1</span>
+                        <span th:if="${iterStat.index == 1}" style="color:#e2e8f0; font-weight:bold;">2</span>
+                        <span th:if="${iterStat.index == 2}" style="color:#d97706; font-weight:bold;">3</span>
+                        <span th:if="${iterStat.index >= 3}" th:text="${iterStat.index + 1}">4</span>
                     </td>
-                    <td th:text="${player.fullName} ?: '—'">Nguyễn Văn A</td>
-                    <td th:text="'@' + ${player.userName}">@nguyenvana</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                            <div class="podium-avatar" style="width:32px; height:32px; font-size:1rem; flex-shrink:0;">
+                                <span th:text="${#strings.substring(player.fullName ?: player.userName, 0, 1).toUpperCase()}">A</span>
+                            </div>
+                            <span th:text="${player.fullName} ?: ${player.userName}">Nguyễn Văn A</span>
+                        </div>
+                    </td>
+                    <td th:text="${player.winCount}" style="color:#10b981;">0</td>
+                    <td th:text="${player.lossCount}">0</td>
+                    <td th:text="${player.drawCount}">0</td>
                     <td>
                         <span class="elo-badge" th:text="${player.eloPoint}">1513</span>
-                    </td>
-                    <td>
-                        <span th:class="'rank-tier ' + (${player.eloPoint >= 1800} ? 'rank-master' :
-                                         (${player.eloPoint >= 1600} ? 'rank-diamond' :
-                                         (${player.eloPoint >= 1400} ? 'rank-gold' : 'rank-silver')))"
-                              th:text="${player.eloPoint >= 1800} ? 'Master' :
-                                       (${player.eloPoint >= 1600} ? 'Diamond' :
-                                       (${player.eloPoint >= 1400} ? 'Gold' : 'Silver'))">Gold</span>
-                    </td>
-                    <td>
-                        <span th:class="${player.state.name() == 'ONLINE'} ? 'status-badge status-online' :
-                                        (${player.state.name() == 'IN_GAME'} ? 'status-badge status-ingame' : 'status-badge status-offline')"
-                              th:text="${player.state}">OFFLINE</span>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+</div>
+
+<style>
+    .clickable-row {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .clickable-row:hover {
+        background-color: #334155 !important;
+    }
+</style>
 
 </body>
 </html>

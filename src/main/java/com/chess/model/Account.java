@@ -26,6 +26,15 @@ public class Account {
     @Column(length = 50)
     private String userRole;
 
+    @org.hibernate.annotations.Formula("(SELECT COUNT(sm.id) FROM session_member sm WHERE sm.user_id = id AND sm.result = 'VICTORY')")
+    private int winCount;
+
+    @org.hibernate.annotations.Formula("(SELECT COUNT(sm.id) FROM session_member sm WHERE sm.user_id = id AND sm.result = 'DEFEAT')")
+    private int lossCount;
+
+    @org.hibernate.annotations.Formula("(SELECT COUNT(sm.id) FROM session_member sm WHERE sm.user_id = id AND sm.result = 'DRAW')")
+    private int drawCount;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private AccountState state = AccountState.OFFLINE;
@@ -44,6 +53,9 @@ public class Account {
     public String      getUserRole()    { return userRole; }
     public AccountState getState()      { return state; }
     public RankingData getRankingData() { return rankingData; }
+    public int         getWinCount()    { return winCount; }
+    public int         getLossCount()   { return lossCount; }
+    public int         getDrawCount()   { return drawCount; }
 
     // Setters
     public void setId(Long id)                  { this.id = id; }

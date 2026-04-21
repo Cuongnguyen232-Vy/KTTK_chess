@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface SessionMemberRepository extends JpaRepository<SessionMember, Long> {
     List<SessionMember> findBySessionId(Long sessionId);
     Optional<SessionMember> findBySessionIdAndUserUserName(Long sessionId, String userName);
+    List<SessionMember> findByUserUserNameOrderByIdDesc(String userName);
 }

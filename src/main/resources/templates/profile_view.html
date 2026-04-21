@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông tin người chơi - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <span class="logo-icon">♟</span>
+        <span>Cường đẹp traii</span>
+    </div>
+    <div class="nav-actions">
+        <a href="javascript:history.back()" class="btn btn-ghost">← Quay lại</a>
+    </div>
+</nav>
+
+<div class="main-container">
+    
+    <!-- Header thông tin người chơi -->
+    <div style="background:#1e293b; border-left: 5px solid #10b981; border-radius: 0.5rem; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div class="podium-avatar" style="width:80px; height:80px; font-size:2.5rem; flex-shrink:0;">
+            <span th:text="${#strings.substring(targetPlayer.fullName ?: targetPlayer.userName, 0, 1).toUpperCase()}">A</span>
+        </div>
+        <div>
+            <h2 style="margin: 0 0 0.5rem 0; color: #f8fafc; font-size: 1.75rem;">
+                <span th:text="${targetPlayer.fullName} ?: ${targetPlayer.userName}">Player Name</span>
+                <span style="color: #64748b; font-size: 1.25rem; font-weight: normal;" th:text="'(@' + ${targetPlayer.userName} + ')'">(@username)</span>
+            </h2>
+            <div style="background: rgba(255,255,255,0.1); display: inline-block; padding: 0.25rem 1rem; border-radius: 0.5rem; color: #38bdf8;">
+                Elo hiện tại: <strong th:text="${targetPlayer.eloPoint}">1600</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng lịch sử trận đấu -->
+    <div class="page-header" style="text-align:left; display:flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:1.25rem;">⏱</span>
+        <h3 style="margin:0; font-size:1.25rem; color:#f8fafc;">Lịch sử trận đấu</h3>
+    </div>
+    
+    <div class="table-card">
+        <table class="data-table ranking-table">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>ELO TRƯỚC</th>
+                    <th>ELO SAU</th>
+                    <th>KẾT QUẢ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="match, stats : ${matchHistory}">
+                    <td class="rank-cell" th:text="${stats.index + 1}">1</td>
+                    <td th:text="${match.eloInitial}">1610</td>
+                    <td th:text="${match.eloFinal}">1605</td>
+                    <td>
+                        <span th:if="${match.result != null and match.result.name() == 'VICTORY'}" class="status-badge status-online">THẮNG</span>
+                        <span th:if="${match.result != null and match.result.name() == 'DEFEAT'}" class="status-badge status-offline">THUA</span>
+                        <span th:if="${match.result != null and match.result.name() == 'DRAW'}" class="status-badge" style="background:rgba(245, 158, 11, 0.2); color:#f59e0b;">HÒA</span>
+                        <span th:if="${match.result == null}">-</span>
+                    </td>
+                </tr>
+                <tr th:if="${matchHistory.isEmpty()}">
+                    <td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">Chưa có lịch sử đấu</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 2rem; display:flex; justify-content:space-between; align-items:center;">
+        <a href="javascript:history.back()" class="btn btn-ghost" style="background:#1e293b; color:#f8fafc;">← Quay lại</a>
+        <div style="display:flex; gap:0.5rem; justify-content:center;">
+            <span class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">1</span>
+            <span style="color:#64748b; padding: 0.25rem;">...</span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

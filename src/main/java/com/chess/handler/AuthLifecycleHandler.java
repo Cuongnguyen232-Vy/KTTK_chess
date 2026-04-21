@@ -20,7 +20,8 @@ import java.util.Optional;
 /**
  * AuthLifecycleHandler - Xử lý các sự kiện đăng nhập / đăng xuất.
  * - Cập nhật trạng thái người chơi khi login/logout
- * - Điều hướng đến đúng trang sau khi đăng nhập (Admin → dashboard, User → home)
+ * - Điều hướng đến đúng trang sau khi đăng nhập (Admin → dashboard, User →
+ * home)
  */
 @Component
 public class AuthLifecycleHandler implements AuthenticationSuccessHandler, LogoutHandler, LogoutSuccessHandler {
@@ -35,8 +36,8 @@ public class AuthLifecycleHandler implements AuthenticationSuccessHandler, Logou
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         String username = authentication.getName();
 
         // Cập nhật trạng thái ONLINE
@@ -80,8 +81,8 @@ public class AuthLifecycleHandler implements AuthenticationSuccessHandler, Logou
      */
     @Override
     public void onLogoutSuccess(HttpServletRequest request,
-                                HttpServletResponse response,
-                                Authentication authentication) throws IOException, ServletException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         response.sendRedirect("/login?logout=true");
     }
 }

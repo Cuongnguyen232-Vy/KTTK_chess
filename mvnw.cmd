@@ -16,4 +16,4 @@
 @SET WRAPPER_JAR="%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.jar"
 @SET WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
 
-"%JAVA_HOME%\bin\java.exe" -classpath %WRAPPER_JAR% %WRAPPER_LAUNCHER% %MAVEN_PROJECTBASEDIR% %*
+"%JAVA_HOME%\bin\java.exe" "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR:~0,-1%" -classpath %WRAPPER_JAR% %WRAPPER_LAUNCHER% %*

@@ -216,10 +216,24 @@ function executeMove(fromRow, fromCol, toRow, toCol) {
     // Thêm vào lịch sử
     addMoveHistory(piece, fromCell, toCell);
 
-    // Kiểm tra kết thúc game (vua bị bắt)
+    // Kiểm tra kết thúc game (Chiếu hết hoặc Bắt tướng)
     const oppColorChar = myColor === 'WHITE' ? 'b' : 'w';
-    const gameOver = !findKing(board, oppColorChar);
-    const winner   = gameOver ? myUsername : null;
+    let gameOver = false;
+    let winner = null;
+
+    if (!findKing(board, oppColorChar)) {
+        // Bắt tướng (Trường hợp backup)
+        gameOver = true;
+        winner = myUsername;
+    } else if (!hasAnyLegalMove(oppColorChar)) {
+        // Đối thủ không còn nước đi hợp lệ
+        gameOver = true;
+        if (isKingInCheck(board, oppColorChar)) {
+            winner = myUsername; // Chiếu hết (Checkmate)
+        } else {
+            winner = null; // Cờ bí (Stalemate - Hòa)
+        }
+    }
 
     // Gửi nước đi qua WebSocket
     const movePayload = {
@@ -240,7 +254,8 @@ function executeMove(fromRow, fromCol, toRow, toCol) {
     updateTurnIndicator();
 
     if (gameOver) {
-        setTimeout(() => showGameOver(true, null), 500);
+        // Truyền đúng winner (không phải null) để hiển thị "Bạn thắng!"
+        setTimeout(() => showGameOver(true, winner), 500);
     }
 }
 
@@ -281,93 +296,138 @@ function onMoveReceived(move) {
 // ============================================
 //  TÍNH CÁC NƯỚC ĐI HỢP LỆ
 // ============================================
-function getLegalMoves(row, col) {
-    const piece = board[row][col];
-    if (!piece) return [];
 
-    const color    = piece[0]; // 'w' hoặc 'b'
-    const pieceType = piece[1]; // K,Q,R,B,N,P
-    let moves = [];
-
-    switch(pieceType) {
-        case 'P': moves = getPawnMoves(row,col,color); break;
-        case 'R': moves = getSlidingMoves(row,col,color,[[0,1],[0,-1],[1,0],[-1,0]]); break;
-        case 'B': moves = getSlidingMoves(row,col,color,[[1,1],[1,-1],[-1,1],[-1,-1]]); break;
-        case 'Q': moves = getSlidingMoves(row,col,color,[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]); break;
-        case 'N': moves = getKnightMoves(row,col,color); break;
-        case 'K': moves = getKingMoves(row,col,color); break;
-    }
-
-    return moves;
-}
-
-function getPawnMoves(row, col, color) {
-    const moves = [];
-    const dir   = color === 'w' ? -1 : 1; // Trắng đi lên (row giảm), đen đi xuống
-    const startRow = color === 'w' ? 6 : 1;
-
-    // Tiến 1
-    if (inBounds(row+dir,col) && !board[row+dir][col]) {
-        moves.push({row:row+dir, col});
-        // Tiến 2 từ dòng đầu
-        if (row === startRow && !board[row+2*dir][col]) {
-            moves.push({row:row+2*dir, col});
+/**
+ * Kiểm tra xem màu color có đang bị chiếu trên bàn cờ b không.
+ */
+function isKingInCheck(b, color) {
+    const king = findKing(b, color);
+    if (!king) return true; // Không tìm thấy tướng = đã bị ăn
+    const opp = color === 'w' ? 'b' : 'w';
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const p = b[r][c];
+            if (!p || p[0] !== opp) continue;
+            const raw = getRawMoves(b, r, c, opp);
+            if (raw.some(m => m.row === king.row && m.col === king.col)) return true;
         }
     }
+    return false;
+}
 
-    // Bắt chéo
+/**
+ * Lấy nước đi thô (chưa lọc chiếu) từ bàn cờ b.
+ */
+function getRawMoves(b, row, col, color) {
+    const pieceType = b[row][col][1];
+    switch(pieceType) {
+        case 'P': return getPawnMovesFromBoard(b, row, col, color);
+        case 'R': return getSlidingMovesFromBoard(b, row, col, color, [[0,1],[0,-1],[1,0],[-1,0]]);
+        case 'B': return getSlidingMovesFromBoard(b, row, col, color, [[1,1],[1,-1],[-1,1],[-1,-1]]);
+        case 'Q': return getSlidingMovesFromBoard(b, row, col, color, [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]);
+        case 'N': return getKnightMovesFromBoard(b, row, col, color);
+        case 'K': return getKingMovesFromBoard(b, row, col, color);
+        default:  return [];
+    }
+}
+
+function getPawnMovesFromBoard(b, row, col, color) {
+    const moves = [];
+    const dir = color === 'w' ? -1 : 1;
+    const startRow = color === 'w' ? 6 : 1;
+    if (inBounds(row+dir, col) && !b[row+dir][col]) {
+        moves.push({row:row+dir, col});
+        if (row === startRow && !b[row+2*dir][col]) moves.push({row:row+2*dir, col});
+    }
     for (const dc of [-1,1]) {
         if (inBounds(row+dir, col+dc)) {
-            const target = board[row+dir][col+dc];
-            if (target && target[0] !== color) {
-                moves.push({row:row+dir, col:col+dc});
-            }
+            const t = b[row+dir][col+dc];
+            if (t && t[0] !== color) moves.push({row:row+dir, col:col+dc});
         }
     }
     return moves;
 }
 
-function getSlidingMoves(row, col, color, directions) {
+function getSlidingMovesFromBoard(b, row, col, color, directions) {
     const moves = [];
     for (const [dr,dc] of directions) {
-        let r = row+dr, c = col+dc;
+        let r=row+dr, c=col+dc;
         while (inBounds(r,c)) {
-            const target = board[r][c];
-            if (!target) {
-                moves.push({row:r,col:c});
-            } else {
-                if (target[0] !== color) moves.push({row:r,col:c}); // Bắt quân địch
-                break;
-            }
+            const t = b[r][c];
+            if (!t) { moves.push({row:r,col:c}); }
+            else { if (t[0] !== color) moves.push({row:r,col:c}); break; }
             r+=dr; c+=dc;
         }
     }
     return moves;
 }
 
-function getKnightMoves(row, col, color) {
+function getKnightMovesFromBoard(b, row, col, color) {
     const moves = [];
     for (const [dr,dc] of [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]]) {
         const r=row+dr, c=col+dc;
-        if (inBounds(r,c)) {
-            const target = board[r][c];
-            if (!target || target[0] !== color) moves.push({row:r,col:c});
-        }
+        if (inBounds(r,c)) { const t=b[r][c]; if (!t||t[0]!==color) moves.push({row:r,col:c}); }
     }
     return moves;
 }
 
-function getKingMoves(row, col, color) {
+function getKingMovesFromBoard(b, row, col, color) {
     const moves = [];
     for (const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]) {
         const r=row+dr, c=col+dc;
-        if (inBounds(r,c)) {
-            const target = board[r][c];
-            if (!target || target[0] !== color) moves.push({row:r,col:c});
-        }
+        if (inBounds(r,c)) { const t=b[r][c]; if (!t||t[0]!==color) moves.push({row:r,col:c}); }
     }
     return moves;
 }
+
+/**
+ * Kiểm tra xem người chơi (color) còn bất kỳ nước đi hợp lệ nào không.
+ */
+function hasAnyLegalMove(color) {
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (piece && piece[0] === color) {
+                if (getLegalMoves(r, c).length > 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * getLegalMoves: lọc bỏ mọi nước làm tướng mình bị chiếu sau khi đi.
+ */
+function getLegalMoves(row, col) {
+    const piece = board[row][col];
+    if (!piece) return [];
+
+    const color    = piece[0]; // 'w' hoặc 'b'
+    // Lấy nước đi thô trên bàn cờ hiện tại
+    const rawMoves = getRawMoves(board, row, col, color);
+
+    // Lọc: chỉ giữ nước không để tướng mình trong tầm chiếu
+    return rawMoves.filter(move => {
+        // Thử di chuyển trên bản sao bàn cờ
+        const tempBoard = board.map(r => [...r]);
+        tempBoard[move.row][move.col] = tempBoard[row][col];
+        tempBoard[row][col] = '';
+        // Phong cấp trong bản sao
+        if (tempBoard[move.row][move.col] === 'wP' && move.row === 0) tempBoard[move.row][move.col] = 'wQ';
+        if (tempBoard[move.row][move.col] === 'bP' && move.row === 7) tempBoard[move.row][move.col] = 'bQ';
+        // Nếu sau nước này tướng mình vẫn bị chiếu → loại bỏ
+        return !isKingInCheck(tempBoard, color);
+    });
+}
+
+// Các hàm getPawnMoves, getSlidingMoves, getKnightMoves, getKingMoves
+// giờ được thay thế bằng các hàm *FromBoard ở trên (dùng chung cho
+// cả kiểm tra chiếu lẫn tính nước đi)
+// Giữ lại alias để tránh lỗi nếu có nơi khác gọi:
+function getPawnMoves(row,col,color)    { return getPawnMovesFromBoard(board,row,col,color); }
+function getSlidingMoves(row,col,color,dirs) { return getSlidingMovesFromBoard(board,row,col,color,dirs); }
+function getKnightMoves(row,col,color)  { return getKnightMovesFromBoard(board,row,col,color); }
+function getKingMoves(row,col,color)    { return getKingMovesFromBoard(board,row,col,color); }
 
 function inBounds(r,c) { return r>=0 && r<8 && c>=0 && c<8; }
 
