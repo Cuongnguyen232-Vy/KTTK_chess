@@ -8,6 +8,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * DataInitializer - Tạo tài khoản mặc định khi khởi động lần đầu.
  * Admin: username=admin / password=admin123
@@ -23,6 +25,13 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // Reset trạng thái tất cả người dùng về OFFLINE khi khởi động lại server
+        List<Account> allAccounts = accountRepository.findAll();
+        for (Account acc : allAccounts) {
+            acc.setState(AccountState.OFFLINE);
+        }
+        accountRepository.saveAll(allAccounts);
+
         // Tạo admin nếu chưa có
         if (!accountRepository.existsByUserName("admin")) {
             Account admin = new Account();
