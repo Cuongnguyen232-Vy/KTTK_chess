@@ -95,10 +95,29 @@ function onInviteReceived(payload) {
     showModal('invite-modal');
 }
 
+function updateInvitesCounter() {
+    const btn = document.getElementById('nav-invites-btn');
+    const countSpan = document.getElementById('nav-invites-count');
+    if (btn && countSpan) {
+        if (pendingInvitations.length > 0) {
+            btn.style.display = 'inline-block';
+            countSpan.innerText = pendingInvitations.length;
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+}
+
 function renderInvitations() {
+    updateInvitesCounter();
     const listDiv = document.getElementById('invitation-list');
     if (!listDiv) return;
     listDiv.innerHTML = '';
+    
+    if (pendingInvitations.length === 0) {
+        listDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; font-style:italic;">Không có lời mời nào hiện tại.</p>';
+        return;
+    }
     
     pendingInvitations.forEach(inv => {
         const item = document.createElement('div');
@@ -141,6 +160,7 @@ function acceptInvitation(id) {
     
     // Xóa list và ẩn modal
     pendingInvitations = [];
+    updateInvitesCounter();
     hideModal('invite-modal');
 }
 
@@ -152,9 +172,8 @@ function rejectInvitation(id) {
         pendingInvitations = pendingInvitations.filter(inv => inv.invitationId !== id);
     }
     
-    if (pendingInvitations.length > 0) {
-        renderInvitations();
-    } else {
+    renderInvitations();
+    if (pendingInvitations.length === 0) {
         hideModal('invite-modal');
     }
 }
@@ -162,6 +181,7 @@ function rejectInvitation(id) {
 function rejectAllInvitations() {
     pendingInvitations.forEach(inv => respondToSingle(inv, false));
     pendingInvitations = [];
+    renderInvitations();
     hideModal('invite-modal');
 }
 

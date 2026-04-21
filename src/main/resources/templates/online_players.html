@@ -16,6 +16,10 @@
         <span>Cường đẹp traii</span>
     </div>
     <div class="nav-actions">
+        <button onclick="showModal('invite-modal')" class="btn btn-warning btn-sm" id="nav-invites-btn" style="display:none; position:relative; margin-right:1rem;">
+            📩 Lời mời
+            <span id="nav-invites-count" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; font-weight:bold;">0</span>
+        </button>
         <a th:href="@{/home}" class="btn btn-ghost">← Trang chủ</a>
         <span class="nav-user" th:text="'👤 ' + ${currentAccount?.userName}">👤 Player</span>
     </div>
@@ -70,13 +74,17 @@
 <!-- Modal nhận lời mời -->
 <div id="invite-modal" class="modal hidden">
     <div class="modal-content">
-        <h3>⚔️ Lời mời thách đấu!</h3>
-        <p>Chọn đối thủ bạn muốn chơi cùng:</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;">⚔️ Lời mời thách đấu!</h3>
+            <button onclick="hideModal('invite-modal')" style="background:transparent; border:none; color:#f8fafc; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <p>Các đối thủ đang chờ bạn phản hồi:</p>
         <div id="invitation-list" style="margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: left;">
             <!-- Danh sách lời mời sẽ được render vào đây bằng JS -->
         </div>
-        <div style="margin-top: 15px; text-align: right;">
+        <div style="margin-top: 15px; text-align: right; display:flex; justify-content:flex-end; gap:10px;">
             <button class="btn btn-outline btn-sm" onclick="rejectAllInvitations()">Từ chối tất cả</button>
+            <button class="btn btn-secondary btn-sm" onclick="hideModal('invite-modal')">Đóng menu</button>
         </div>
     </div>
 </div>
