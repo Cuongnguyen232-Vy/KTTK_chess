@@ -111,11 +111,12 @@
     const MY_COLOR        = /*[[${myColor}]]*/ 'WHITE';
     const MY_ID           = /*[[${currentAccount?.id}]]*/ 0;
     const OPPONENT_NAME   = /*[[${opponent?.fullName}]]*/ 'Đối thủ';
+    const OPPONENT_USERNAME = /*[[${opponent?.userName}]]*/ '';
     const OPPONENT_COLOR  = /*[[${opponentColor}]]*/ 'BLACK';
 
     // Khởi tạo game
     initWebSocket(MY_USERNAME, MY_ID);
-    initChessGame(SESSION_ID, MY_USERNAME, MY_COLOR, MY_ID, OPPONENT_NAME);
+    initChessGame(SESSION_ID, MY_USERNAME, MY_COLOR, MY_ID, OPPONENT_NAME, OPPONENT_USERNAME);
 </script>
 </body>
 </html>

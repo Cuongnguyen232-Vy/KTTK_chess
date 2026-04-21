@@ -40,6 +40,7 @@ let sessionId      = null;
 let myUsername     = null;
 let myId           = null;
 let opponentName   = null;
+let opponentUsername = null;
 let lastMove       = null;    // {from:{row,col}, to:{row,col}}
 let gameStompClient = null;
 let timerMe, timerOpponent;
@@ -48,12 +49,13 @@ let timeMe = 600, timeOpp = 600; // 10 phút mỗi người
 // ============================================
 //  KHỞI TẠO GAME
 // ============================================
-function initChessGame(sid, username, color, uid, oppName) {
+function initChessGame(sid, username, color, uid, oppName, oppUser) {
     sessionId    = sid;
     myUsername   = username;
     myColor      = color;
     myId         = uid;
     opponentName = oppName;
+    opponentUsername = oppUser;
 
     // Màu của mình
     const myColorChar = (color === 'WHITE') ? 'w' : 'b';
@@ -84,8 +86,19 @@ function subscribeToGameChannel() {
             });
 
             // Lắng nghe xin hòa
-            stompClient.subscribe(`/user/queue/draw-offer`, function(message) {
-                showModal('draw-offer-modal');
+            stompClient.subscribe(`/topic/game/${sessionId}/draw-offer`, function(message) {
+                const payload = JSON.parse(message.body);
+                if (payload.playerUsername !== myUsername) {
+                    showModal('draw-offer-modal');
+                }
+            });
+
+            // Lắng nghe từ chối hòa
+            stompClient.subscribe(`/topic/game/${sessionId}/draw-reject`, function(message) {
+                const payload = JSON.parse(message.body);
+                if (payload.playerUsername !== myUsername) {
+                    showAlert('❌ Đối thủ từ chối hòa.');
+                }
             });
 
             console.log(`✅ Đã subscribe kênh game/${sessionId}`);
@@ -265,6 +278,14 @@ function executeMove(fromRow, fromCol, toRow, toCol) {
 function onMoveReceived(move) {
     // Bỏ qua nước đi của chính mình (đã xử lý local)
     if (move.playerUsername === myUsername) return;
+
+    if (move.gameOver && (!move.fromCell || move.fromCell === '')) {
+        // Đối thủ ngưng chơi (đầu hàng hoặc hoà cờ)
+        // winner có thể là null (hoà) hoặc mình (đối thủ đầu hàng)
+        const isWinner = move.winner === myUsername;
+        showGameOver(isWinner, move.winner);
+        return;
+    }
 
     // Parse from/to
     const fromCol = letterToCol(move.fromCell[0]);
@@ -526,8 +547,8 @@ function showGameOver(isWinner, winnerName) {
 // ============================================
 function offerDraw() {
     if (!stompClient || !stompClient.connected) return;
-    stompClient.convertAndSendToUser && stompClient.send('/app/draw-offer', {}, JSON.stringify({
-        sessionId,
+    stompClient.send(`/app/draw-offer/${sessionId}`, {}, JSON.stringify({
+        sessionId: sessionId,
         playerUsername: myUsername
     }));
     showAlert('🤝 Đã gửi đề nghị hòa cờ!');
@@ -544,22 +565,23 @@ function acceptDraw() {
 
 function rejectDraw() {
     hideModal('draw-offer-modal');
+    stompClient.send(`/app/draw-reject/${sessionId}`, {}, JSON.stringify({
+        sessionId: sessionId,
+        playerUsername: myUsername
+    }));
 }
 
 function resign() {
     if (!confirm('Bạn có chắc muốn đầu hàng không?')) return;
 
-    // Người kia thắng
-    const oppColorChar = myColor === 'WHITE' ? 'b' : 'w';
-    const movePayload = {
-        sessionId, playerId: myId, playerUsername: myUsername,
-        fromCell:'', toCell:'', boardFen:'', piece:'',
-        gameOver: true, winner: null // Server xử lý qua /resign
-    };
+    // Server xử lý qua /resign. Truyền username của đối thủ làm winner
     stompClient.send(`/app/resign/${sessionId}`, {}, JSON.stringify({
-        sessionId, playerUsername: myUsername, winner: null, gameOver: true
+        sessionId: sessionId, 
+        playerUsername: myUsername, 
+        winner: opponentUsername, 
+        gameOver: true
     }));
-    showGameOver(false, opponentName);
+    showGameOver(false, opponentUsername);
 }
 
 // ============================================

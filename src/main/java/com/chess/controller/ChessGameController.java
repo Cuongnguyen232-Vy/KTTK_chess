@@ -67,4 +67,14 @@ public class ChessGameController {
         payload.setGameOver(true);
         simpMessagingTemplate.convertAndSend("/topic/game/" + sessionId, payload);
     }
+
+    @MessageMapping("/draw-offer/{sessionId}")
+    public void handleDrawOffer(@DestinationVariable Long sessionId, MovePayload payload) {
+        simpMessagingTemplate.convertAndSend("/topic/game/" + sessionId + "/draw-offer", payload);
+    }
+
+    @MessageMapping("/draw-reject/{sessionId}")
+    public void handleDrawReject(@DestinationVariable Long sessionId, MovePayload payload) {
+        simpMessagingTemplate.convertAndSend("/topic/game/" + sessionId + "/draw-reject", payload);
+    }
 }
