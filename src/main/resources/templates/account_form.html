@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Sửa người chơi' : 'Thêm người chơi mới'" >Form - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+
+<div class="auth-wrapper">
+    <div class="auth-card form-card">
+        <!-- Logo -->
+        <div class="auth-logo">
+            <div class="logo-icon">♟</div>
+            <h1 class="brand-name">Cường đẹp traii</h1>
+        </div>
+
+        <h2 class="auth-title" th:text="${isEdit} ? '✏️ Chỉnh sửa người chơi' : '➕ Thêm người chơi mới'">
+            Thêm người chơi mới
+        </h2>
+
+        <!-- Flash errors -->
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- Form -->
+        <form th:action="${isEdit} ? @{/admin/accounts/edit/{id}(id=${account.id})} : @{/admin/accounts/add}"
+              th:object="${account}" method="post">
+
+            <div class="form-group">
+                <label for="userName">Tên đăng nhập</label>
+                <input type="text" id="userName" th:field="*{userName}"
+                       placeholder="Nhập tên đăng nhập" required
+                       th:readonly="${isEdit}">
+            </div>
+
+            <div class="form-group">
+                <label for="passWord">
+                    Mật khẩu
+                    <span th:if="${isEdit}" style="font-size:0.8rem;color:#888;">(để trống nếu không đổi)</span>
+                </label>
+                <input type="password" id="passWord" name="passWord"
+                       placeholder="••••••••"
+                       th:required="${!isEdit}">
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Họ tên</label>
+                <input type="text" id="fullName" th:field="*{fullName}"
+                       placeholder="Nhập họ và tên">
+            </div>
+
+            <div class="form-group">
+                <label for="eloPoint">ELO</label>
+                <input type="number" id="eloPoint" th:field="*{eloPoint}"
+                       placeholder="1500" min="0" max="9999">
+            </div>
+
+            <div class="form-group">
+                <label for="userRole">Vai trò</label>
+                <select id="userRole" th:field="*{userRole}">
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <button type="submit" class="btn btn-primary btn-full">
+                    <span th:text="${isEdit} ? '💾 Lưu thay đổi' : '✅ Thêm người chơi'">Thêm người chơi</span>
+                </button>
+                <a th:href="@{/admin/accounts}" class="btn btn-outline btn-full">← Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

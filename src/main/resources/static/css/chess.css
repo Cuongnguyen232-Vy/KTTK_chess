@@ -1,0 +1,102 @@
+/* ============================================
+   CHESS BOARD CSS
+   ============================================ */
+
+.chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 480px;
+    height: 480px;
+    border: 3px solid #0f3460;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    user-select: none;
+}
+
+/* Ô sáng */
+.square-light {
+    background: #f0d9b5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+    aspect-ratio: 1;
+}
+
+/* Ô tối */
+.square-dark {
+    background: #b58863;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+    aspect-ratio: 1;
+}
+
+/* Ô được chọn */
+.square-selected {
+    background: #f6f669 !important;
+    box-shadow: inset 0 0 0 3px rgba(255,255,0,0.6);
+}
+
+/* Ô có thể đi đến */
+.square-possible {
+    background: rgba(20, 85, 30, 0.5) !important;
+}
+.square-possible::after {
+    content: '';
+    display: block;
+    width: 30%;
+    height: 30%;
+    background: rgba(20, 85, 30, 0.7);
+    border-radius: 50%;
+    position: absolute;
+}
+/* Nếu ô possible có quân địch: highlight viền */
+.square-possible.has-piece::after {
+    width: 90%;
+    height: 90%;
+    background: transparent;
+    border-radius: 50%;
+    border: 5px solid rgba(20, 85, 30, 0.8);
+}
+
+/* Ô vua đang bị chiếu */
+.square-check {
+    background: rgba(220, 30, 30, 0.65) !important;
+}
+
+/* Nước đi cuối cùng */
+.square-last-from, .square-last-to {
+    background: rgba(155, 199, 0, 0.41) !important;
+}
+
+/* Quân cờ */
+.piece {
+    font-size: 2.4rem;
+    line-height: 1;
+    cursor: grab;
+    transition: transform 0.1s ease;
+    filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.4));
+    position: relative;
+    z-index: 2;
+}
+.piece:hover { transform: scale(1.1); }
+.piece:active { cursor: grabbing; transform: scale(1.2); }
+
+/* Responsive board */
+@media (max-width: 600px) {
+    .chess-board { width: 320px; height: 320px; }
+    .piece { font-size: 1.6rem; }
+}
+
+@media (max-width: 400px) {
+    .chess-board { width: 280px; height: 280px; }
+    .piece { font-size: 1.4rem; }
+}

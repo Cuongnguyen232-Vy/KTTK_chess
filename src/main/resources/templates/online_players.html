@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thách đấu - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <span class="logo-icon">♟</span>
+        <span>Cường đẹp traii</span>
+    </div>
+    <div class="nav-actions">
+        <a th:href="@{/home}" class="btn btn-ghost">← Trang chủ</a>
+        <span class="nav-user" th:text="'👤 ' + ${currentAccount?.userName}">👤 Player</span>
+    </div>
+</nav>
+
+<div class="main-container">
+    <div class="page-header">
+        <h2>⚔️ Người chơi đang Online</h2>
+        <span class="online-count" th:text="${players.size()} + ' người online'">0 người online</span>
+    </div>
+
+    <div class="players-grid">
+        <div th:if="${players.isEmpty()}" class="empty-state">
+            <div class="empty-icon">😴</div>
+            <p>Hiện chưa có người chơi nào online. Hãy thử lại sau!</p>
+        </div>
+
+        <div th:each="player : ${players}" class="player-card">
+            <div class="player-avatar">
+                <span th:text="${#strings.substring(player.fullName ?: player.userName, 0, 1).toUpperCase()}">A</span>
+            </div>
+            <div class="player-info">
+                <div class="player-name" th:text="${player.fullName} ?: ${player.userName}">Nguyễn Văn A</div>
+                <div class="player-username" th:text="'@' + ${player.userName}">@nguyenvana</div>
+                <div class="player-elo">
+                    <span class="elo-badge" th:text="'ELO: ' + ${player.eloPoint}">ELO: 1513</span>
+                    <span th:class="${player.state.name() == 'IN_GAME'} ? 'status-badge status-ingame' : 'status-badge status-online'"
+                          th:text="${player.state.name() == 'IN_GAME'} ? '🎮 Đang chơi' : '🟢 Online'">🟢 Online</span>
+                </div>
+            </div>
+            <button th:if="${player.state.name() == 'ONLINE'}"
+                    class="btn btn-primary btn-challenge"
+                    th:attr="data-target-id=${player.id},data-target-username=${player.userName},data-target-fullname=${player.fullName}"
+                    onclick="sendChallenge(this)">
+                ⚔️ Thách đấu
+            </button>
+            <span th:if="${player.state.name() == 'IN_GAME'}" class="btn btn-disabled">🎮 Đang bận</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chờ phản hồi -->
+<div id="waiting-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="spinner"></div>
+        <h3>Đang chờ phản hồi...</h3>
+        <p id="waiting-msg">Đợi đối thủ chấp nhận lời mời</p>
+        <button onclick="cancelChallenge()" class="btn btn-outline">Hủy bỏ</button>
+    </div>
+</div>
+
+<!-- Modal nhận lời mời -->
+<div id="invite-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>⚔️ Lời mời thách đấu!</h3>
+        <p id="invite-msg">Bạn nhận được lời mời</p>
+        <div class="modal-actions">
+            <button id="btn-accept" class="btn btn-primary">✅ Chấp nhận</button>
+            <button id="btn-reject" class="btn btn-danger">❌ Từ chối</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/js/websocket.js}"></script>
+<script th:inline="javascript">
+    const currentUsername = /*[[${currentAccount?.userName}]]*/ '';
+    const currentUserId   = /*[[${currentAccount?.id}]]*/ 0;
+    initWebSocket(currentUsername, currentUserId);
+</script>
+</body>
+</html>

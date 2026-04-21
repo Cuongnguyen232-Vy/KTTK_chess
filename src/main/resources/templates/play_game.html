@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ván cờ - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/chess.css}">
+</head>
+<body class="game-body">
+
+<!-- Navbar -->
+<nav class="navbar game-nav">
+    <div class="nav-brand">
+        <span class="logo-icon">♟</span>
+        <span>Cường đẹp traii</span>
+    </div>
+    <div class="nav-center">
+        <div class="turn-indicator" id="turn-indicator">⚪ Lượt: TRẮNG</div>
+    </div>
+    <div class="nav-actions">
+        <button class="btn btn-warning btn-sm" onclick="offerDraw()">🤝 Xin hòa</button>
+        <button class="btn btn-danger btn-sm" onclick="resign()">🏳️ Đầu hàng</button>
+    </div>
+</nav>
+
+<div class="game-container">
+    <!-- Thông tin đối thủ -->
+    <div class="player-panel opponent-panel">
+        <div class="panel-avatar">
+            <span th:text="${opponent?.fullName != null ? #strings.substring(opponent.fullName, 0, 1).toUpperCase() : 'O'}">O</span>
+        </div>
+        <div class="panel-info">
+            <div class="panel-name" th:text="${opponent?.fullName} ?: 'Đối thủ'">Đối thủ</div>
+            <div class="panel-detail">
+                <span th:text="'ELO: ' + ${opponent?.eloPoint}">ELO: 1500</span>
+                <span class="panel-color" th:text="${opponentColor == 'WHITE'} ? '⚪ Trắng' : '⚫ Đen'"
+                      th:style="${opponentColor == 'BLACK'} ? 'color:#333' : ''">⚫ Đen</span>
+            </div>
+        </div>
+        <div class="timer" id="timer-opponent">10:00</div>
+    </div>
+
+    <!-- Bàn cờ -->
+    <div class="board-wrapper">
+        <div class="chess-board" id="chess-board"></div>
+        <!-- Nhãn cột a–h -->
+        <div class="board-labels-col">
+            <span>a</span><span>b</span><span>c</span><span>d</span>
+            <span>e</span><span>f</span><span>g</span><span>h</span>
+        </div>
+        <!-- Nhãn hàng 8–1 -->
+        <div class="board-labels-row">
+            <span>8</span><span>7</span><span>6</span><span>5</span>
+            <span>4</span><span>3</span><span>2</span><span>1</span>
+        </div>
+    </div>
+
+    <!-- Thông tin người chơi hiện tại -->
+    <div class="player-panel my-panel">
+        <div class="panel-avatar my-avatar">
+            <span th:text="${currentAccount?.fullName != null ? #strings.substring(currentAccount.fullName, 0, 1).toUpperCase() : 'M'}">M</span>
+        </div>
+        <div class="panel-info">
+            <div class="panel-name" th:text="${currentAccount?.fullName} ?: ${currentUsername}">Bạn</div>
+            <div class="panel-detail">
+                <span th:text="'ELO: ' + ${currentAccount?.eloPoint}">ELO: 1500</span>
+                <span class="panel-color" th:text="${myColor == 'WHITE'} ? '⚪ Trắng' : '⚫ Đen'">⚪ Trắng</span>
+            </div>
+        </div>
+        <div class="timer" id="timer-me">10:00</div>
+    </div>
+</div>
+
+<!-- Lịch sử nước đi -->
+<div class="move-history-panel">
+    <h4>📋 Lịch sử nước đi</h4>
+    <div class="move-list" id="move-list"></div>
+</div>
+
+<!-- Modal kết thúc ván -->
+<div id="game-over-modal" class="modal hidden">
+    <div class="modal-content game-over-content">
+        <div class="game-over-icon" id="game-over-icon">🏆</div>
+        <h2 id="game-over-title">Kết thúc ván đấu!</h2>
+        <p id="game-over-msg"></p>
+        <a th:href="@{/home}" class="btn btn-primary">🏠 Về trang chủ</a>
+    </div>
+</div>
+
+<!-- Modal xin hòa -->
+<div id="draw-offer-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>🤝 Lời đề nghị hòa</h3>
+        <p id="draw-offer-msg">Đối thủ xin hòa. Bạn có đồng ý không?</p>
+        <div class="modal-actions">
+            <button onclick="acceptDraw()" class="btn btn-primary">✅ Đồng ý</button>
+            <button onclick="rejectDraw()" class="btn btn-danger">❌ Từ chối</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/js/websocket.js}"></script>
+<script th:src="@{/js/chess.js}"></script>
+<script th:inline="javascript">
+    const SESSION_ID      = /*[[${sessionId}]]*/ 0;
+    const MY_USERNAME     = /*[[${currentUsername}]]*/ '';
+    const MY_COLOR        = /*[[${myColor}]]*/ 'WHITE';
+    const MY_ID           = /*[[${currentAccount?.id}]]*/ 0;
+    const OPPONENT_NAME   = /*[[${opponent?.fullName}]]*/ 'Đối thủ';
+    const OPPONENT_COLOR  = /*[[${opponentColor}]]*/ 'BLACK';
+
+    // Khởi tạo game
+    initWebSocket(MY_USERNAME, MY_ID);
+    initChessGame(SESSION_ID, MY_USERNAME, MY_COLOR, MY_ID, OPPONENT_NAME);
+</script>
+</body>
+</html>

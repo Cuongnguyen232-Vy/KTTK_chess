@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bảng xếp hạng - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <span class="logo-icon">♟</span>
+        <span>Cường đẹp traii</span>
+    </div>
+    <div class="nav-actions">
+        <a href="javascript:history.back()" class="btn btn-ghost">← Quay lại</a>
+    </div>
+</nav>
+
+<div class="main-container">
+    <div class="page-header ranking-header">
+        <h2>🏆 Bảng xếp hạng</h2>
+        <p>Xếp hạng theo điểm ELO giảm dần</p>
+    </div>
+
+    <!-- Top 3 podium -->
+    <div class="podium" th:if="${players.size() >= 3}">
+        <!-- Hạng 2 -->
+        <div class="podium-item podium-2" th:if="${players.size() > 1}">
+            <div class="podium-avatar">
+                <span th:text="${#strings.substring(players[1].fullName ?: players[1].userName, 0, 1).toUpperCase()}">B</span>
+            </div>
+            <div class="podium-name" th:text="${players[1].fullName} ?: ${players[1].userName}">Player 2</div>
+            <div class="podium-elo" th:text="${players[1].eloPoint}">1487</div>
+            <div class="podium-rank rank-2">🥈</div>
+        </div>
+        <!-- Hạng 1 -->
+        <div class="podium-item podium-1">
+            <div class="podium-avatar podium-crown">
+                <span th:text="${#strings.substring(players[0].fullName ?: players[0].userName, 0, 1).toUpperCase()}">A</span>
+            </div>
+            <div class="podium-name" th:text="${players[0].fullName} ?: ${players[0].userName}">Player 1</div>
+            <div class="podium-elo" th:text="${players[0].eloPoint}">2000</div>
+            <div class="podium-rank rank-1">🥇</div>
+        </div>
+        <!-- Hạng 3 -->
+        <div class="podium-item podium-3" th:if="${players.size() > 2}">
+            <div class="podium-avatar">
+                <span th:text="${#strings.substring(players[2].fullName ?: players[2].userName, 0, 1).toUpperCase()}">C</span>
+            </div>
+            <div class="podium-name" th:text="${players[2].fullName} ?: ${players[2].userName}">Player 3</div>
+            <div class="podium-elo" th:text="${players[2].eloPoint}">1650</div>
+            <div class="podium-rank rank-3">🥉</div>
+        </div>
+    </div>
+
+    <!-- Bảng xếp hạng đầy đủ -->
+    <div class="table-card">
+        <table class="data-table ranking-table">
+            <thead>
+                <tr>
+                    <th>XẾP HẠNG</th>
+                    <th>HỌ TÊN</th>
+                    <th>TÊN ĐĂNG NHẬP</th>
+                    <th>ĐIỂM ELO</th>
+                    <th>CẤP BẬC</th>
+                    <th>TRẠNG THÁI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="player, iterStat : ${players}"
+                    th:class="${iterStat.index < 3} ? 'top-row' : ''">
+                    <td class="rank-cell">
+                        <span th:if="${iterStat.index == 0}">🥇</span>
+                        <span th:if="${iterStat.index == 1}">🥈</span>
+                        <span th:if="${iterStat.index == 2}">🥉</span>
+                        <span th:if="${iterStat.index >= 3}" th:text="${iterStat.index + 1}">#4</span>
+                    </td>
+                    <td th:text="${player.fullName} ?: '—'">Nguyễn Văn A</td>
+                    <td th:text="'@' + ${player.userName}">@nguyenvana</td>
+                    <td>
+                        <span class="elo-badge" th:text="${player.eloPoint}">1513</span>
+                    </td>
+                    <td>
+                        <span th:class="'rank-tier ' + (${player.eloPoint >= 1800} ? 'rank-master' :
+                                         (${player.eloPoint >= 1600} ? 'rank-diamond' :
+                                         (${player.eloPoint >= 1400} ? 'rank-gold' : 'rank-silver')))"
+                              th:text="${player.eloPoint >= 1800} ? 'Master' :
+                                       (${player.eloPoint >= 1600} ? 'Diamond' :
+                                       (${player.eloPoint >= 1400} ? 'Gold' : 'Silver'))">Gold</span>
+                    </td>
+                    <td>
+                        <span th:class="${player.state.name() == 'ONLINE'} ? 'status-badge status-online' :
+                                        (${player.state.name() == 'IN_GAME'} ? 'status-badge status-ingame' : 'status-badge status-offline')"
+                              th:text="${player.state}">OFFLINE</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

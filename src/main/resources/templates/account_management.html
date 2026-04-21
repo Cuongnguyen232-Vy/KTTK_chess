@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý người chơi - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <span class="logo-icon">♟</span>
+        <span>Cường đẹp traii</span>
+    </div>
+    <div class="nav-actions">
+        <a th:href="@{/dashboard}" class="btn btn-ghost">← Dashboard</a>
+        <span class="nav-user">👤 NGƯỜI ĐĂNG NHẬP: Admin</span>
+    </div>
+</nav>
+
+<div class="main-container">
+    <!-- Header -->
+    <div class="page-header">
+        <h2>👥 Quản lý người chơi</h2>
+        <a th:href="@{/admin/accounts/add}" class="btn btn-primary btn-icon">
+            ➕ Thêm người chơi
+        </a>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <!-- Bảng danh sách -->
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>TÊN ĐĂNG NHẬP</th>
+                    <th>HỌ TÊN</th>
+                    <th>ELO</th>
+                    <th>VAI TRÒ</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>HÀNH ĐỘNG</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="acc : ${accounts.content}">
+                    <td th:text="${acc.id}">1</td>
+                    <td th:text="${acc.userName}">nguyenvana</td>
+                    <td th:text="${acc.fullName}">Nguyễn Văn A</td>
+                    <td>
+                        <span class="elo-badge" th:text="${acc.eloPoint}">1513</span>
+                    </td>
+                    <td>
+                        <span th:class="${acc.userRole == 'ADMIN'} ? 'role-badge role-admin' : 'role-badge role-user'"
+                              th:text="${acc.userRole}">USER</span>
+                    </td>
+                    <td>
+                        <span th:class="${acc.state.name() == 'ONLINE'} ? 'status-badge status-online' :
+                                        (${acc.state.name() == 'IN_GAME'} ? 'status-badge status-ingame' : 'status-badge status-offline')"
+                              th:text="${acc.state}">OFFLINE</span>
+                    </td>
+                    <td class="action-cell">
+                        <a th:href="@{/admin/accounts/edit/{id}(id=${acc.id})}"
+                           class="btn btn-sm btn-warning">✏️ Sửa</a>
+                        <a th:href="@{/admin/accounts/delete/{id}(id=${acc.id})}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Xác nhận xóa người chơi này?')">🗑️ Xóa</a>
+                    </td>
+                </tr>
+                <tr th:if="${accounts.content.isEmpty()}">
+                    <td colspan="7" class="empty-row">Chưa có người chơi nào.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <div class="pagination" th:if="${accounts.totalPages > 1}">
+        <a th:href="@{/admin/accounts(page=${currentPage - 1})}"
+           th:class="${currentPage == 0} ? 'page-btn disabled' : 'page-btn'">← Trước</a>
+
+        <span th:each="i : ${#numbers.sequence(0, accounts.totalPages - 1)}">
+            <a th:href="@{/admin/accounts(page=${i})}"
+               th:class="${i == currentPage} ? 'page-btn active' : 'page-btn'"
+               th:text="${i + 1}">1</a>
+        </span>
+
+        <a th:href="@{/admin/accounts(page=${currentPage + 1})}"
+           th:class="${currentPage == accounts.totalPages - 1} ? 'page-btn disabled' : 'page-btn'">Tiếp →</a>
+    </div>
+</div>
+
+</body>
+</html>

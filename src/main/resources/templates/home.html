@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ - Cường đẹp traii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+
+<div class="auth-wrapper">
+    <div class="auth-card dashboard-card">
+        <!-- Logo -->
+        <div class="auth-logo">
+            <div class="logo-icon">♟</div>
+            <h1 class="brand-name">Cường đẹp traii</h1>
+        </div>
+
+        <!-- Chào mừng player -->
+        <div class="welcome-badge">
+            🎉
+            <span>Chào mừng &nbsp;</span>
+            <span class="badge-name" th:text="${account?.fullName} ?: ${account?.userName}">Player</span>
+        </div>
+
+        <!-- ELO hiện tại -->
+        <div class="player-stats">
+            <div class="stat-item">
+                <span class="stat-label">ELO</span>
+                <span class="stat-value elo-value" th:text="${account?.eloPoint}">1500</span>
+            </div>
+        </div>
+
+        <div class="dashboard-actions">
+            <a th:href="@{/online-players}" class="btn btn-primary btn-full btn-icon">
+                ⚔️ Thách đấu trực tiếp
+            </a>
+            <a th:href="@{/ranking}" class="btn btn-secondary btn-full btn-icon">
+                🏆 Bảng xếp hạng
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-outline btn-full btn-icon">
+                    🚪 Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- WebSocket: Lắng nghe lời mời từ đối thủ -->
+<div id="invite-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3 id="invite-title">Lời mời thách đấu!</h3>
+        <p id="invite-msg"></p>
+        <div class="modal-actions">
+            <button id="btn-accept" class="btn btn-primary">✅ Chấp nhận</button>
+            <button id="btn-reject" class="btn btn-danger">❌ Từ chối</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/js/websocket.js}"></script>
+<script th:inline="javascript">
+    const currentUsername = /*[[${account?.userName}]]*/ '';
+    const currentUserId   = /*[[${account?.id}]]*/ 0;
+    initWebSocket(currentUsername, currentUserId);
+</script>
+</body>
+</html>
