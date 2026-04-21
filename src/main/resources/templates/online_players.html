@@ -71,10 +71,12 @@
 <div id="invite-modal" class="modal hidden">
     <div class="modal-content">
         <h3>⚔️ Lời mời thách đấu!</h3>
-        <p id="invite-msg">Bạn nhận được lời mời</p>
-        <div class="modal-actions">
-            <button id="btn-accept" class="btn btn-primary">✅ Chấp nhận</button>
-            <button id="btn-reject" class="btn btn-danger">❌ Từ chối</button>
+        <p>Chọn đối thủ bạn muốn chơi cùng:</p>
+        <div id="invitation-list" style="margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: left;">
+            <!-- Danh sách lời mời sẽ được render vào đây bằng JS -->
+        </div>
+        <div style="margin-top: 15px; text-align: right;">
+            <button class="btn btn-outline btn-sm" onclick="rejectAllInvitations()">Từ chối tất cả</button>
         </div>
     </div>
 </div>

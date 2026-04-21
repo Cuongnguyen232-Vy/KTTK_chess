@@ -7,7 +7,7 @@
  */
 
 let stompClient = null;
-let currentInvitation = null;
+let pendingInvitations = [];
 let pendingChallenge = null;
 
 /**
@@ -87,39 +87,98 @@ function sendChallenge(button) {
    NHẬN LỜI MỜI THÁCH ĐẤU
    ============================================ */
 function onInviteReceived(payload) {
-    currentInvitation = payload;
-
-    document.getElementById('invite-msg').textContent =
-        `${payload.initiatorUsername} muốn thách đấu với bạn!`;
-
+    // Thêm vào danh sách nếu chưa có (tránh trùng)
+    if (!pendingInvitations.find(inv => inv.invitationId === payload.invitationId)) {
+        pendingInvitations.push(payload);
+    }
+    renderInvitations();
     showModal('invite-modal');
+}
 
-    document.getElementById('btn-accept').onclick = function() {
-        respondToInvitation(true);
-    };
-    document.getElementById('btn-reject').onclick = function() {
-        respondToInvitation(false);
-    };
+function renderInvitations() {
+    const listDiv = document.getElementById('invitation-list');
+    if (!listDiv) return;
+    listDiv.innerHTML = '';
+    
+    pendingInvitations.forEach(inv => {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        item.style.background = 'rgba(255,255,255,0.05)';
+        item.style.padding = '10px';
+        item.style.borderRadius = '5px';
+        item.style.marginBottom = '10px';
+        item.style.borderLeft = '3px solid #10b981';
+        
+        item.innerHTML = `
+            <div style="display:flex; flex-direction:column; color:#f8fafc;">
+                <span style="font-weight:bold;">${inv.initiatorUsername}</span>
+                <span style="font-size:0.75rem; color:#94a3b8;">Đang mời bạn...</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-primary btn-sm" onclick="acceptInvitation(${inv.invitationId})" style="padding:0.4rem 0.6rem; border-radius:4px;">Chấp nhận</button>
+                <button class="btn btn-outline btn-sm" onclick="rejectInvitation(${inv.invitationId})" style="padding:0.4rem 0.6rem; border-radius:4px; border-color:#ef4444; color:#ef4444;">Từ chối</button>
+            </div>
+        `;
+        listDiv.appendChild(item);
+    });
+}
+
+function acceptInvitation(id) {
+    const chosen = pendingInvitations.find(inv => inv.invitationId === id);
+    if (!chosen) return;
+    
+    // Từ chối TẤT CẢ các lời mời còn lại (Yêu cầu của thầy)
+    pendingInvitations.forEach(inv => {
+        if (inv.invitationId !== id) {
+            respondToSingle(inv, false);
+        }
+    });
+    
+    // Chấp nhận người được chọn
+    respondToSingle(chosen, true);
+    
+    // Xóa list và ẩn modal
+    pendingInvitations = [];
+    hideModal('invite-modal');
+}
+
+function rejectInvitation(id) {
+    const chosen = pendingInvitations.find(inv => inv.invitationId === id);
+    if (chosen) {
+        respondToSingle(chosen, false);
+        // Xóa khỏi danh sách hiện tại
+        pendingInvitations = pendingInvitations.filter(inv => inv.invitationId !== id);
+    }
+    
+    if (pendingInvitations.length > 0) {
+        renderInvitations();
+    } else {
+        hideModal('invite-modal');
+    }
+}
+
+function rejectAllInvitations() {
+    pendingInvitations.forEach(inv => respondToSingle(inv, false));
+    pendingInvitations = [];
+    hideModal('invite-modal');
 }
 
 /* ============================================
    PHẢN HỒI LỜI MỜI
    ============================================ */
-function respondToInvitation(accepted) {
-    if (!currentInvitation) return;
-
+function respondToSingle(invitation, accepted) {
     const payload = {
-        invitationId:      currentInvitation.invitationId,
+        invitationId:      invitation.invitationId,
         accepted:          accepted,
-        initiatorId:       currentInvitation.initiatorId,
-        initiatorUsername: currentInvitation.initiatorUsername,
-        targetId:          currentUserId,
-        targetUsername:    currentUsername
+        initiatorId:       invitation.initiatorId,
+        initiatorUsername: invitation.initiatorUsername,
+        targetId:          currentUserId, 
+        targetUsername:    currentUsername 
     };
 
     stompClient.send('/app/respond', {}, JSON.stringify(payload));
-    hideModal('invite-modal');
-    currentInvitation = null;
 }
 
 /* ============================================
