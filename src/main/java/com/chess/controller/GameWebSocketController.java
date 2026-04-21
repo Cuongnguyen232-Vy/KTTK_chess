@@ -38,8 +38,8 @@ public class GameWebSocketController {
         List<Account> onlinePlayers = accountService.getOnlineAccounts();
         String currentUser = auth.getName();
 
-        // Loại bỏ chính mình khỏi danh sách
-        onlinePlayers.removeIf(p -> p.getUserName().equals(currentUser));
+        // Loại bỏ chính mình và các tài khoản ADMIN khỏi danh sách
+        onlinePlayers.removeIf(p -> p.getUserName().equals(currentUser) || "ADMIN".equals(p.getUserRole()));
 
         model.addAttribute("players", onlinePlayers);
         accountPersistence.searchByUserName(currentUser)
